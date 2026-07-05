@@ -1,3 +1,5 @@
+// --- PREVIOUS MOCKS ---
+
 export const fetchDashboardOverview = async () => {
   return {
     totalFirs: 14820,
@@ -55,11 +57,33 @@ export const fetchRecentAlerts = async () => {
   ];
 };
 
+// --- NEW MOCKS FOR CRIME ANALYTICS ---
+
+export const fetchCrimeResolutionFunnel = async () => {
+  return [
+    { stage: 'FIRs Registered', count: 14820 },
+    { stage: 'Under Investigation', count: 11200 },
+    { stage: 'Arrests Made', count: 8500 },
+    { stage: 'Chargesheets Filed', count: 7100 },
+    { stage: 'Convictions', count: 4200 },
+  ];
+};
+
+export const fetchCrimeTypeComparison = async () => {
+  return [
+    { month: 'Jan', theft: 400, cyber: 240, assault: 180 },
+    { month: 'Feb', theft: 380, cyber: 260, assault: 190 },
+    { month: 'Mar', theft: 420, cyber: 290, assault: 210 },
+    { month: 'Apr', theft: 390, cyber: 310, assault: 200 },
+    { month: 'May', theft: 450, cyber: 340, assault: 230 },
+    { month: 'Jun', theft: 410, cyber: 380, assault: 220 },
+  ];
+};
+
+// --- CHATBOT MOCK API ---
+
 export const sendChatMessage = async (message: string, language: string) => {
-  // Simulate network delay
   await new Promise(resolve => setTimeout(resolve, 1500));
-  
-  // Basic rule-based mock logic
   const lowerMsg = message.toLowerCase();
   
   let reply = "";
