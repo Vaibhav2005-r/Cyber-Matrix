@@ -13,21 +13,23 @@ interface KPICardProps {
 
 export const KPICard: React.FC<KPICardProps> = ({ title, value, icon, trend }) => {
   return (
-    <Card className="bg-card">
+    <Card className="bg-card border border-border border-l-4 border-l-border hover:border-l-secondary transition-colors cursor-default rounded-none shadow-none">
       <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-        <CardTitle className="text-sm font-medium text-muted-foreground">{title}</CardTitle>
-        <div className="p-2 bg-primary/10 rounded-md">
+        <CardTitle className="text-[11px] font-mono text-muted-foreground uppercase tracking-widest">{title}</CardTitle>
+        <div className="text-muted-foreground">
           {icon}
         </div>
       </CardHeader>
+      
       <CardContent>
-        <div className="text-2xl font-bold">{value}</div>
+        <div className="text-3xl font-mono font-bold tracking-tight text-foreground">{value}</div>
         {trend && (
-          <p className="text-xs mt-1">
-            <span className={trend.isPositive ? 'text-green-500' : 'text-red-500 font-medium'}>
-              {trend.isPositive ? '↑' : '↓'} {trend.value}
-            </span>
-          </p>
+          <div className="flex items-center gap-2 mt-2">
+            <div className={`w-1.5 h-1.5 rounded-full ${trend.isPositive ? 'bg-green-500' : 'bg-red-500'}`}></div>
+            <p className="text-[10px] font-mono text-muted-foreground uppercase tracking-wider">
+              {trend.value}
+            </p>
+          </div>
         )}
       </CardContent>
     </Card>

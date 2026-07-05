@@ -1,147 +1,121 @@
 import React, { useEffect, useState } from 'react';
-import { 
-  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, 
-  BarChart, Bar, PieChart, Pie, Cell, Legend 
-} from 'recharts';
-import { 
-  FileText, Shield, CheckCircle, FileSignature, 
-  AlertOctagon, Repeat, MapPin, TrendingUp, Bell 
-} from 'lucide-react';
-import { KPICard } from '../components/KPICard';
+import { KPICard } from '@/components/KPICard';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { AlertCircle, FileText, CheckCircle, Crosshair, Users, Activity, TrendingUp, AlertTriangle } from 'lucide-react';
 import { 
-  fetchDashboardOverview, fetchCrimeTrends, fetchDistrictDistribution, 
-  fetchCrimeCategories, fetchRecentAlerts 
-} from '../lib/catalyst';
-
-const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#f97316', '#06b6d4'];
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer
+} from 'recharts';
+import { fetchDashboardOverview, fetchCrimeTrends } from '@/lib/catalyst';
 
 export const Dashboard: React.FC = () => {
-  const [overview, setOverview] = useState<any>(null);
+  const [stats, setStats] = useState<any>(null);
   const [trends, setTrends] = useState<any[]>([]);
-  const [districts, setDistricts] = useState<any[]>([]);
-  const [categories, setCategories] = useState<any[]>([]);
-  const [alerts, setAlerts] = useState<any[]>([]);
 
   useEffect(() => {
     const loadData = async () => {
-      const [o, t, d, c, a] = await Promise.all([
-        fetchDashboardOverview(),
-        fetchCrimeTrends(),
-        fetchDistrictDistribution(),
-        fetchCrimeCategories(),
-        fetchRecentAlerts()
-      ]);
-      setOverview(o);
-      setTrends(t);
-      setDistricts(d);
-      setCategories(c);
-      setAlerts(a);
+      const overviewData = await fetchDashboardOverview();
+      const trendData = await fetchCrimeTrends();
+      setStats(overviewData);
+      setTrends(trendData);
     };
     loadData();
   }, []);
 
-  if (!overview) return <div className="p-8 text-muted-foreground">Loading Command Center...</div>;
+  if (!stats) return <div className="p-6 text-secondary font-mono animate-pulse">INIT_SYSTEM_CORE...</div>;
 
   return (
-    <div className="p-6 pb-16">
-      <div className="flex justify-between items-start mb-6">
+    <div className="p-6 pb-16 space-y-6">
+      <div className="flex justify-between items-end mb-4 border-b border-border pb-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Command Center</h1>
-          <p className="text-muted-foreground">Real-time crime intelligence across Karnataka.</p>
+          <h1 className="text-2xl font-mono font-bold tracking-widest mb-1 text-foreground">COMMAND_CENTER</h1>
+          <p className="text-muted-foreground font-mono text-[10px] uppercase tracking-[0.2em]">KSP • Intelligence Matrix • Terminal 01</p>
         </div>
-        <Button variant="outline" className="border-primary/50 bg-primary/10 text-primary hover:bg-primary/20">
-          Ask AI Assistant
-        </Button>
+        <div className="flex gap-2">
+          <div className="px-3 py-1 bg-destructive/10 border border-destructive flex items-center gap-2 text-[10px] font-mono font-bold text-destructive tracking-widest">
+            <div className="w-1.5 h-1.5 bg-destructive animate-pulse"></div>
+            3_CRITICAL_ALERTS
+          </div>
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <KPICard title="Total FIRs Registered" value={overview.totalFirs.toLocaleString()} icon={<FileText className="text-primary" size={20} />} trend={{ value: '12%', isPositive: true }} />
-        <KPICard title="Active Cases" value={overview.activeCases.toLocaleString()} icon={<AlertOctagon className="text-destructive" size={20} />} trend={{ value: '5%', isPositive: false }} />
-        <KPICard title="Cases Solved" value={overview.casesSolved.toLocaleString()} icon={<CheckCircle className="text-green-500" size={20} />} trend={{ value: '8%', isPositive: true }} />
-        <KPICard title="Chargesheets Filed" value={overview.chargesheetsFiled.toLocaleString()} icon={<FileSignature className="text-yellow-500" size={20} />} />
-        <KPICard title="High Priority Cases" value={overview.highPriorityCases} icon={<Shield className="text-destructive" size={20} />} />
-        <KPICard title="Repeat Offenders" value={overview.repeatOffenders} icon={<Repeat className="text-orange-500" size={20} />} />
-        <KPICard title="Active Crime Hotspots" value={overview.activeHotspots} icon={<MapPin className="text-destructive" size={20} />} />
-        <KPICard title="Crime Increase" value={`${overview.crimeIncrease}%`} icon={<TrendingUp className="text-destructive" size={20} />} trend={{ value: 'vs last month', isPositive: false }} />
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <KPICard title="TTL_FIRS_REGISTERED" value={stats.totalFirs} icon={<FileText size={16} />} trend={{ value: '+12%_MOM', isPositive: false }} />
+        <KPICard title="ACTIVE_CASES" value={stats.activeCases} icon={<Activity size={16} />} trend={{ value: '-2%_MOM', isPositive: true }} />
+        <KPICard title="CASES_SOLVED" value={stats.casesSolved} icon={<CheckCircle size={16} />} trend={{ value: '+18%_MOM', isPositive: true }} />
+        <KPICard title="CHARGESHEETS_FILED" value={stats.chargesheetsFiled} icon={<Crosshair size={16} />} />
+        
+        <KPICard title="HIGH_PRIORITY_CASES" value={stats.highPriorityCases} icon={<AlertCircle size={16} />} trend={{ value: '+4_NEW', isPositive: false }} />
+        <KPICard title="REPEAT_OFFENDERS" value={stats.repeatOffenders} icon={<Users size={16} />} />
+        <KPICard title="ACTIVE_HOTSPOTS" value={stats.activeHotspots} icon={<AlertTriangle size={16} />} />
+        <KPICard title="CRIME_RATE_IDX" value={`${stats.crimeIncrease}%`} icon={<TrendingUp size={16} />} trend={{ value: 'ELEVATED', isPositive: false }} />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Crime Trends (Weekly)</CardTitle>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+        <Card className="bg-card border border-border rounded-none shadow-none">
+          <CardHeader className="border-b border-border pb-3">
+            <CardTitle className="text-xs font-mono tracking-widest flex items-center gap-2 text-muted-foreground">
+              <Activity size={14} className="text-secondary"/> 7_DAY_CRIME_VOL_MATRIX
+            </CardTitle>
           </CardHeader>
-          <CardContent className="h-80">
+          <CardContent className="h-80 pt-4">
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={trends}>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                <XAxis dataKey="name" stroke="hsl(var(--muted-foreground))" />
-                <YAxis stroke="hsl(var(--muted-foreground))" />
-                <RechartsTooltip contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '8px', color: 'hsl(var(--foreground))' }} />
-                <Line type="monotone" dataKey="crimes" stroke="hsl(var(--primary))" strokeWidth={3} dot={{ fill: 'hsl(var(--primary))', r: 4 }} />
-              </LineChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Crime Category Distribution</CardTitle>
-          </CardHeader>
-          <CardContent className="h-80 flex justify-center">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie data={categories} cx="50%" cy="50%" innerRadius={60} outerRadius={100} paddingAngle={5} dataKey="value">
-                  {categories.map((entry, index) => <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />)}
-                </Pie>
-                <RechartsTooltip contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', color: 'hsl(var(--foreground))' }} />
-                <Legend />
-              </PieChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-        <Card className="lg:col-span-2">
-          <CardHeader>
-            <CardTitle>District Performance</CardTitle>
-          </CardHeader>
-          <CardContent className="h-80">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={districts} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
-                <XAxis dataKey="name" stroke="hsl(var(--muted-foreground))" />
-                <YAxis stroke="hsl(var(--muted-foreground))" />
-                <RechartsTooltip contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', color: 'hsl(var(--foreground))' }} />
-                <Legend />
-                <Bar dataKey="firs" name="Total FIRs" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
-                <Bar dataKey="pending" name="Pending Cases" fill="hsl(var(--destructive))" radius={[4, 4, 0, 0]} />
+              <BarChart data={trends} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="2 2" stroke="hsl(var(--border))" vertical={false} />
+                <XAxis dataKey="name" stroke="hsl(var(--muted-foreground))" tick={{fontSize: 10, fontFamily: 'monospace'}} tickLine={false} axisLine={false} />
+                <YAxis stroke="hsl(var(--muted-foreground))" tick={{fontSize: 10, fontFamily: 'monospace'}} tickLine={false} axisLine={false} />
+                <Tooltip 
+                  cursor={{fill: 'hsl(var(--muted))'}}
+                  contentStyle={{ backgroundColor: 'hsl(var(--background))', border: '1px solid hsl(var(--border))', borderRadius: '0', color: 'hsl(var(--foreground))', fontFamily: 'monospace', fontSize: '11px' }} 
+                />
+                <Bar dataKey="crimes" fill="hsl(var(--secondary))" radius={0} />
               </BarChart>
             </ResponsiveContainer>
           </CardContent>
         </Card>
 
-        <Card className="flex flex-col">
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2">
-              <Bell size={20} className="text-yellow-500" /> Recent Alerts
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="flex-1 overflow-y-auto pr-2 flex flex-col gap-3 h-80">
-            {alerts.map(alert => (
-              <div key={alert.id} className={`p-4 rounded-lg border-l-4 ${
-                alert.type === 'critical' ? 'bg-red-500/10 border-red-500' : 
-                alert.type === 'success' ? 'bg-green-500/10 border-green-500' : 
-                'bg-yellow-500/10 border-yellow-500'
-              }`}>
-                <p className="text-sm text-foreground mb-1 font-medium">{alert.message}</p>
-                <span className="text-xs text-muted-foreground">{alert.time}</span>
+        <div className="space-y-6">
+          <Card className="bg-background border border-destructive rounded-none shadow-none">
+            <CardHeader className="bg-destructive/10 border-b border-destructive pb-2 pt-3">
+              <CardTitle className="text-destructive flex items-center gap-2 text-xs font-mono uppercase tracking-widest">
+                <AlertTriangle size={14} className="animate-pulse" /> PRIORITY_OVERRIDE_ALERT
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="pt-4">
+              <div className="font-mono">
+                <h4 className="font-bold text-foreground text-sm mb-2">INCIDENT: ARMED_ROBBERY // LOC: INDIRANAGAR</h4>
+                <p className="text-xs text-muted-foreground mb-4">MULTIPLE SUSPECTS DETECTED. 2 UNITS RESPONDING. REQ_BACKUP & CCTV_CROSSREF.</p>
+                <div className="flex gap-2">
+                  <button className="px-4 py-1.5 bg-destructive hover:bg-destructive/80 text-destructive-foreground text-[10px] font-bold tracking-widest transition-colors uppercase">
+                    Dispatch_Units
+                  </button>
+                  <button className="px-4 py-1.5 bg-transparent hover:bg-muted text-muted-foreground text-[10px] border border-border font-bold tracking-widest transition-colors uppercase">
+                    View_Intel
+                  </button>
+                </div>
               </div>
-            ))}
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-card border border-border rounded-none shadow-none">
+            <CardHeader className="border-b border-border pb-2 pt-3">
+              <CardTitle className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">ZCQL_DB_QUERY_LOGS</CardTitle>
+            </CardHeader>
+            <CardContent className="pt-4">
+              <div className="space-y-2 font-mono text-[10px]">
+                {[
+                  { q: 'SELECT * FROM FIR WHERE status = "Active"', time: 'T-2m' },
+                  { q: 'SELECT count(id) FROM Suspects WHERE risk > 8', time: 'T-15m' },
+                  { q: 'SELECT * FROM Hotspots WHERE severity = "Critical"', time: 'T-1h' },
+                ].map((log, i) => (
+                  <div key={i} className="flex justify-between items-center p-1.5 bg-background border border-border">
+                    <span className="text-secondary">{log.q}</span>
+                    <span className="text-muted-foreground">{log.time}</span>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
   );
