@@ -1,28 +1,43 @@
 // --- PREVIOUS MOCKS ---
 
 export const fetchDashboardOverview = async () => {
-  return {
-    totalFirs: 14820,
-    activeCases: 3410,
-    casesSolved: 8900,
-    chargesheetsFiled: 9200,
-    highPriorityCases: 142,
-    repeatOffenders: 840,
-    activeHotspots: 14,
-    crimeIncrease: 2.4, // % compared to last month
-  };
+  try {
+    const response = await fetch('/server/api/dashboard/overview');
+    if (!response.ok) throw new Error('Network response was not ok');
+    return await response.json();
+  } catch (error) {
+    console.error("Failed to fetch from backend, returning fallback data", error);
+    // Fallback if backend is down
+    return {
+      totalFirs: 14820,
+      activeCases: 3410,
+      casesSolved: 8900,
+      chargesheetsFiled: 9200,
+      highPriorityCases: 142,
+      repeatOffenders: 840,
+      activeHotspots: 14,
+      crimeIncrease: 2.4, 
+    };
+  }
 };
 
 export const fetchCrimeTrends = async () => {
-  return [
-    { name: 'Mon', crimes: 120 },
-    { name: 'Tue', crimes: 145 },
-    { name: 'Wed', crimes: 110 },
-    { name: 'Thu', crimes: 135 },
-    { name: 'Fri', crimes: 190 },
-    { name: 'Sat', crimes: 210 },
-    { name: 'Sun', crimes: 180 },
-  ];
+  try {
+    const response = await fetch('/server/api/crime/trends');
+    if (!response.ok) throw new Error('Network response was not ok');
+    return await response.json();
+  } catch (error) {
+    console.error("Failed to fetch from backend, returning fallback data", error);
+    return [
+      { name: 'Mon', crimes: 120 },
+      { name: 'Tue', crimes: 145 },
+      { name: 'Wed', crimes: 110 },
+      { name: 'Thu', crimes: 135 },
+      { name: 'Fri', crimes: 190 },
+      { name: 'Sat', crimes: 210 },
+      { name: 'Sun', crimes: 180 },
+    ];
+  }
 };
 
 export const fetchDistrictDistribution = async () => {
