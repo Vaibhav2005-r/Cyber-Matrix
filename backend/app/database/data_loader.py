@@ -28,7 +28,7 @@ class DataLoader:
         print("Loading Crime Dataset...")
         print("=" * 60)
 
-        self.df = pd.read_csv(dataset)
+        self.df = pd.read_csv(dataset, low_memory=False)
 
         print(f"Rows Loaded : {len(self.df):,}")
         print("Building indexes...")

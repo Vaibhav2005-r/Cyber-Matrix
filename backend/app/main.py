@@ -29,38 +29,29 @@ app.include_router(chat_router)
 def home():
 
     return {
-        "message": "Cyber Matrix Backend Running 🚀"
+        "message": "Cyber Matrix Backend Running"
     }
 
 
 @app.get("/statistics")
-def statistics():
-
-    return crime_service.statistics()
-
+def statistics(district: str = None, year: int = None, crime: str = None):
+    return crime_service.statistics(district=district, year=year, crime=crime)
 
 @app.get("/monthly-trend")
-def monthly_trend():
-
-    return crime_service.monthly_trend()
-
+def monthly_trend(district: str = None, year: int = None, crime: str = None):
+    return crime_service.monthly_trend(district=district, year=year, crime=crime)
 
 @app.get("/crime-distribution")
-def crime_distribution():
-
-    return crime_service.crime_distribution()
-
+def crime_distribution(district: str = None, year: int = None, crime: str = None):
+    return crime_service.crime_distribution(district=district, year=year, crime=crime)
 
 @app.get("/district-distribution")
-def district_distribution():
-
-    return crime_service.district_distribution()
-
+def district_distribution(district: str = None, year: int = None, crime: str = None):
+    return crime_service.district_distribution(district=district, year=year, crime=crime)
 
 @app.get("/recent-cases")
-def recent_cases():
-
-    return crime_service.recent_cases()
+def recent_cases(district: str = None, year: int = None, crime: str = None):
+    return crime_service.recent_cases(district=district, year=year, crime=crime)
 
 
 @app.get("/map-coordinates")

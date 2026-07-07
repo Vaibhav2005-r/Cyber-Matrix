@@ -1,3 +1,6 @@
+import pandas as pd
+
+import pandas as pd
 from app.database.data_loader import DataLoader
 
 
@@ -14,20 +17,26 @@ class CrimeService:
         self.stations = loader.station_index
         self.years = loader.year_index
 
-    def statistics(self):
-
+    def statistics(self, district=None, year=None, crime=None):
+        df = self.search_flexible(district=district, year=year, crime=crime)
         return {
-            "total_records": len(self.df),
-            "districts": len(self.districts),
-            "crime_types": len(self.crimes),
-            "stations": len(self.stations),
-            "convictions": int(self.df["Conviction Count"].fillna(0).sum())
+            "total_records": len(df),
+            "districts": df["District_Name"].nunique() if len(df) > 0 else 0,
+            "crime_types": df["CrimeHead_Name"].nunique() if len(df) > 0 else 0,
+            "stations": df["UnitName"].nunique() if len(df) > 0 else 0,
+            "convictions": int(df["Conviction Count"].fillna(0).sum())
         }
 
-    def monthly_trend(self):
-        # Calculate monthly trend for the last full year (2023)
-        df_2023 = self.df[self.df["FIR_YEAR"] == 2023]
-        monthly_counts = df_2023["FIR_MONTH"].value_counts().sort_index()
+    def monthly_trend(self, district=None, year=None, crime=None):
+        df = self.search_flexible(district=district, year=year, crime=crime)
+        # If year filter is not provided, default to the most common year in the filtered dataset, or 2023
+        if not year and len(df) > 0:
+            target_year = df["FIR_YEAR"].mode()[0]
+            df_target = df[df["FIR_YEAR"] == target_year]
+        else:
+            df_target = df
+
+        monthly_counts = df_target["FIR_MONTH"].value_counts().sort_index()
         
         months_map = {
             1: "Jan", 2: "Feb", 3: "Mar", 4: "Apr", 5: "May", 6: "Jun",
@@ -43,10 +52,11 @@ class CrimeService:
             })
         return trend
 
-    def crime_distribution(self):
-        counts = self.df["CrimeHead_Name"].value_counts()
+    def crime_distribution(self, district=None, year=None, crime=None):
+        df = self.search_flexible(district=district, year=year, crime=crime)
+        counts = df["CrimeHead_Name"].value_counts()
         top_5 = counts.head(5)
-        others_count = int(counts.iloc[5:].sum())
+        others_count = int(counts.iloc[5:].sum()) if len(counts) > 5 else 0
         
         distribution = []
         colors = ["#2563EB", "#06B6D4", "#F59E0B", "#EF4444", "#8B5CF6", "#64748B"]
@@ -58,15 +68,17 @@ class CrimeService:
                 "color": colors[i % len(colors)]
             })
             
-        distribution.append({
-            "name": "Others",
-            "value": others_count,
-            "color": colors[-1]
-        })
+        if others_count > 0:
+            distribution.append({
+                "name": "Others",
+                "value": others_count,
+                "color": colors[-1]
+            })
         return distribution
 
-    def district_distribution(self):
-        counts = self.df["District_Name"].value_counts()
+    def district_distribution(self, district=None, year=None, crime=None):
+        df = self.search_flexible(district=district, year=year, crime=crime)
+        counts = df["District_Name"].value_counts()
         top_10 = counts.head(10)
         
         distribution = []
@@ -77,8 +89,9 @@ class CrimeService:
             })
         return distribution
 
-    def recent_cases(self):
-        tail = self.df.tail(6)
+    def recent_cases(self, district=None, year=None, crime=None):
+        df = self.search_flexible(district=district, year=year, crime=crime)
+        tail = df.tail(6)
         recent = []
         severity_map = {
             "murder": "high",
@@ -90,10 +103,10 @@ class CrimeService:
         }
         
         for idx, row in tail.iloc[::-1].iterrows():
-            crime = str(row.get("CrimeHead_Name", "Unknown"))
+            crime_val = str(row.get("CrimeHead_Name", "Unknown"))
             severity = "low"
             for k, v in severity_map.items():
-                if k in crime.lower():
+                if k in crime_val.lower():
                     severity = v
                     break
                     
@@ -104,9 +117,9 @@ class CrimeService:
             elif any(x in status_raw.lower() for x in ["traced", "closed", "convict"]):
                 status = "Resolved"
                 
-            day = int(row.get("FIR_Day", 1))
-            month_num = int(row.get("FIR_MONTH", 1))
-            year = int(row.get("FIR_YEAR", 2024))
+            day = int(row.get("FIR_Day", 1) if not pd.isna(row.get("FIR_Day")) else 1)
+            month_num = int(row.get("FIR_MONTH", 1) if not pd.isna(row.get("FIR_MONTH")) else 1)
+            year_val = int(row.get("FIR_YEAR", 2024) if not pd.isna(row.get("FIR_YEAR")) else 2024)
             
             months_map = {
                 1: "Jan", 2: "Feb", 3: "Mar", 4: "Apr", 5: "May", 6: "Jun",
@@ -116,8 +129,8 @@ class CrimeService:
             
             recent.append({
                 "id": str(idx),
-                "time": f"{month_name} {day}, {year}",
-                "type": crime,
+                "time": f"{month_name} {day}, {year_val}",
+                "type": crime_val,
                 "location": str(row.get("District_Name", "Unknown")),
                 "status": status,
                 "severity": severity
@@ -198,11 +211,11 @@ class CrimeService:
         df = self.df
         
         if district:
-            df = df[df["District_Name"] == district]
+            df = df[df["District_Name"].str.contains(district, case=False, na=False)]
         if crime:
-            df = df[df["CrimeHead_Name"] == crime]
+            df = df[df["CrimeHead_Name"].str.contains(crime, case=False, na=False)]
         if station:
-            df = df[df["UnitName"] == station]
+            df = df[df["UnitName"].str.contains(station, case=False, na=False)]
         if year:
             try:
                 df = df[df["FIR_YEAR"] == int(year)]
