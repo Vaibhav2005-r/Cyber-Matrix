@@ -1,7 +1,7 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { FileText, Download, Filter, FileSpreadsheet, FileIcon } from 'lucide-react';
+import { FileText, Download, FileSpreadsheet, FileIcon } from 'lucide-react';
 
 const recentReports = [
   { id: 'REP-104', name: 'Monthly Crime Statistics - Oct 2024', type: 'PDF', size: '2.4 MB', date: '2024-11-01' },

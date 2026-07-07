@@ -1,157 +1,176 @@
-import React, { useRef, useState, useEffect } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Network, ZoomIn, ZoomOut, Maximize, User, FileText, Phone, Car } from 'lucide-react';
+import React, { useEffect, useState, useRef, useMemo } from 'react';
 import ForceGraph2D from 'react-force-graph-2d';
-
-// Mock Network Data
-const mockGraphData = {
-  nodes: [
-    { id: 'Accused-1', name: 'Ramesh Kumar', type: 'accused', val: 20 },
-    { id: 'Accused-2', name: 'Suresh Rao', type: 'accused', val: 15 },
-    { id: 'FIR-1', name: 'FIR #22156', type: 'fir', val: 10 },
-    { id: 'FIR-2', name: 'FIR #22157', type: 'fir', val: 10 },
-    { id: 'Phone-1', name: '+91 9876543210', type: 'phone', val: 5 },
-    { id: 'Phone-2', name: '+91 9988776655', type: 'phone', val: 5 },
-    { id: 'Vehicle-1', name: 'KA-01-AB-1234', type: 'vehicle', val: 8 },
-    { id: 'Victim-1', name: 'Anil Desai', type: 'victim', val: 5 },
-  ],
-  links: [
-    { source: 'Accused-1', target: 'FIR-1', label: 'Named in' },
-    { source: 'Accused-2', target: 'FIR-1', label: 'Named in' },
-    { source: 'Accused-1', target: 'FIR-2', label: 'Named in' },
-    { source: 'Accused-1', target: 'Phone-1', label: 'Owns' },
-    { source: 'Accused-2', target: 'Phone-2', label: 'Owns' },
-    { source: 'Accused-1', target: 'Vehicle-1', label: 'Drove' },
-    { source: 'Victim-1', target: 'FIR-1', label: 'Complainant' },
-    { source: 'Phone-1', target: 'Phone-2', label: 'Calls (45)' },
-  ]
-};
-
-const getNodeColor = (type: string) => {
-  switch (type) {
-    case 'accused': return '#ef4444';
-    case 'fir': return '#f59e0b';
-    case 'phone': return '#8b5cf6';
-    case 'vehicle': return '#10b981';
-    case 'victim': return '#3b82f6';
-    default: return '#cbd5e1';
-  }
-};
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Network, Activity, Filter, ZoomIn, ZoomOut, Maximize, Share2 } from 'lucide-react';
 
 export const CriminalNetwork: React.FC = () => {
-  const fgRef = useRef<any>();
-  const [dimensions, setDimensions] = useState({ width: 800, height: 600 });
-  const containerRef = useRef<HTMLDivElement>(null);
+  const fgRef = useRef<any>(null);
+  const [windowSize, setWindowSize] = useState({ width: 800, height: 600 });
   const [selectedNode, setSelectedNode] = useState<any>(null);
 
   useEffect(() => {
-    if (containerRef.current) {
-      setDimensions({
-        width: containerRef.current.clientWidth,
-        height: containerRef.current.clientHeight
-      });
-    }
-    
-    // Auto zoom to fit on load
-    setTimeout(() => {
-      fgRef.current?.zoomToFit(400, 50);
-    }, 500);
+    const handleResize = () => {
+      const container = document.getElementById('graph-container');
+      if (container) {
+        setWindowSize({ width: container.clientWidth, height: container.clientHeight });
+      }
+    };
+    window.addEventListener('resize', handleResize);
+    handleResize();
+    return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  const handleNodeClick = (node: any) => {
-    setSelectedNode(node);
-  };
+  const data = useMemo(() => {
+    const nodes = [
+      { id: "A1_RAMESH", group: 1, label: "Ramesh (Kingpin)", val: 20 },
+      { id: "A2_SURESH", group: 2, label: "Suresh (Associate)", val: 10 },
+      { id: "A3_MANJU", group: 2, label: "Manju (Driver)", val: 10 },
+      { id: "FIR_102", group: 3, label: "FIR: 102/2024", val: 5 },
+      { id: "FIR_145", group: 3, label: "FIR: 145/2024", val: 5 },
+      { id: "FIR_088", group: 3, label: "FIR: 088/2024", val: 5 },
+      { id: "A4_KUMAR", group: 4, label: "Kumar (Fence)", val: 12 },
+      { id: "A5_RAVI", group: 2, label: "Ravi (Associate)", val: 10 },
+      { id: "FIR_201", group: 3, label: "FIR: 201/2024", val: 5 },
+      { id: "FIR_205", group: 3, label: "FIR: 205/2024", val: 5 },
+      { id: "A6_VINAY", group: 4, label: "Vinay (Fence)", val: 12 },
+    ];
+    const links = [
+      { source: "A1_RAMESH", target: "A2_SURESH", value: 5 },
+      { source: "A1_RAMESH", target: "A3_MANJU", value: 3 },
+      { source: "A2_SURESH", target: "FIR_102", value: 1 },
+      { source: "A3_MANJU", target: "FIR_102", value: 1 },
+      { source: "A1_RAMESH", target: "FIR_145", value: 1 },
+      { source: "A4_KUMAR", target: "FIR_145", value: 2 },
+      { source: "A1_RAMESH", target: "FIR_088", value: 1 },
+      { source: "A5_RAVI", target: "FIR_088", value: 1 },
+      { source: "A2_SURESH", target: "A5_RAVI", value: 2 },
+      { source: "A4_KUMAR", target: "A6_VINAY", value: 4 },
+      { source: "A6_VINAY", target: "FIR_201", value: 1 },
+      { source: "A6_VINAY", target: "FIR_205", value: 1 },
+      { source: "A1_RAMESH", target: "A6_VINAY", value: 3 },
+    ];
+    return { nodes, links };
+  }, []);
 
   return (
-    <div className="flex flex-col h-[calc(100vh-2rem)] p-6 overflow-hidden">
-      <div className="flex justify-between items-center mb-6">
+    <div className="p-6 h-[calc(100vh-2rem)] flex flex-col space-y-4">
+      <div className="flex justify-between items-end border-b border-border pb-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight mb-1">Criminal Network Analysis</h1>
-          <p className="text-sm text-muted-foreground">Discover hidden connections between accused, FIRs, and assets.</p>
+          <h1 className="text-2xl font-mono font-bold tracking-widest mb-1 text-foreground">CRIMINAL_NETWORK_GRAPH</h1>
+          <p className="text-muted-foreground font-mono text-[10px] uppercase tracking-[0.2em]">KSP • Intelligence Matrix • Module 05</p>
         </div>
-        <div className="flex gap-4">
-          <Button variant="outline" onClick={() => fgRef.current?.zoom(fgRef.current.zoom() * 1.2, 400)}><ZoomIn size={16} /></Button>
-          <Button variant="outline" onClick={() => fgRef.current?.zoom(fgRef.current.zoom() / 1.2, 400)}><ZoomOut size={16} /></Button>
-          <Button variant="outline" onClick={() => fgRef.current?.zoomToFit(400, 50)}><Maximize size={16} /></Button>
+        <div className="flex gap-2">
+          <div className="px-3 py-1 border border-border bg-card flex items-center gap-2 text-[10px] font-mono text-muted-foreground">
+            <Activity size={12} className="text-secondary animate-pulse" /> FORCE_ENGINE_ACTIVE
+          </div>
         </div>
       </div>
 
-      <div className="flex-1 flex gap-6 overflow-hidden">
-        
-        {/* Network Graph Container */}
-        <Card className="flex-1 overflow-hidden relative border-border bg-card shadow-sm" ref={containerRef}>
-          <ForceGraph2D
-            ref={fgRef}
-            width={dimensions.width}
-            height={dimensions.height}
-            graphData={mockGraphData}
-            nodeLabel="name"
-            nodeColor={(node: any) => getNodeColor(node.type)}
-            nodeRelSize={6}
-            linkColor={() => 'rgba(255,255,255,0.2)'}
-            linkWidth={2}
-            linkDirectionalParticles={2}
-            linkDirectionalParticleSpeed={0.005}
-            onNodeClick={handleNodeClick}
-            backgroundColor="#0a0a0a" // dark background matching Tailwind
-          />
-
-          {/* Floating Legend */}
-          <div className="absolute top-4 left-4 bg-background/80 backdrop-blur border border-border rounded-lg p-4 text-xs">
-            <h4 className="font-bold mb-2">Entity Types</h4>
-            <div className="flex flex-col gap-2">
-              <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-red-500"></div> Accused</div>
-              <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-yellow-500"></div> FIR</div>
-              <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-blue-500"></div> Victim</div>
-              <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-purple-500"></div> Phone</div>
-              <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-green-500"></div> Vehicle</div>
+      <div className="flex-1 grid grid-cols-4 gap-4">
+        {/* Main Graph Area */}
+        <div className="col-span-3 border border-border bg-[#050505] relative overflow-hidden flex flex-col" id="graph-container">
+          <div className="absolute top-0 left-0 right-0 p-3 flex justify-between items-start z-10 pointer-events-none">
+            <div className="text-[10px] font-mono text-muted-foreground tracking-widest bg-black/50 p-2 border border-border/50">
+              <span className="text-secondary">NODES:</span> {data.nodes.length} | <span className="text-secondary">EDGES:</span> {data.links.length}
+            </div>
+            <div className="flex gap-2 pointer-events-auto">
+              <button className="p-2 bg-black/50 border border-border/50 hover:border-secondary text-muted-foreground transition-colors"><ZoomIn size={14}/></button>
+              <button className="p-2 bg-black/50 border border-border/50 hover:border-secondary text-muted-foreground transition-colors"><ZoomOut size={14}/></button>
+              <button className="p-2 bg-black/50 border border-border/50 hover:border-secondary text-muted-foreground transition-colors"><Maximize size={14}/></button>
             </div>
           </div>
-        </Card>
 
-        {/* Info Panel */}
-        <Card className="w-80 overflow-y-auto border-border bg-card">
-          <div className="p-6">
-            <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
-              <Network className="text-primary" size={20} /> Selection Details
-            </h3>
-            
-            {selectedNode ? (
-              <div className="flex flex-col gap-4">
-                <div className="p-4 bg-muted/50 rounded-lg border border-border flex flex-col items-center text-center">
-                  {selectedNode.type === 'accused' && <User size={48} className="text-red-500 mb-2" />}
-                  {selectedNode.type === 'fir' && <FileText size={48} className="text-yellow-500 mb-2" />}
-                  {selectedNode.type === 'phone' && <Phone size={48} className="text-purple-500 mb-2" />}
-                  {selectedNode.type === 'vehicle' && <Car size={48} className="text-green-500 mb-2" />}
-                  {selectedNode.type === 'victim' && <User size={48} className="text-blue-500 mb-2" />}
-                  
-                  <h4 className="font-bold text-xl">{selectedNode.name}</h4>
-                  <span className="text-xs text-muted-foreground uppercase tracking-widest mt-1">{selectedNode.type}</span>
-                </div>
-
-                <div>
-                  <h5 className="text-sm font-semibold mb-2">Connections</h5>
-                  <ul className="text-sm space-y-2">
-                    {mockGraphData.links.filter((l: any) => l.source.id === selectedNode.id || l.target.id === selectedNode.id).map((link: any, i) => {
-                      const isSource = link.source.id === selectedNode.id;
-                      const targetNode = isSource ? link.target : link.source;
-                      return (
-                        <li key={i} className="flex justify-between items-center p-2 bg-muted/30 rounded border border-border">
-                          <span>{link.label}</span>
-                          <span className="font-medium">{targetNode.name}</span>
-                        </li>
-                      );
-                    })}
-                  </ul>
-                </div>
-              </div>
-            ) : (
-              <p className="text-sm text-muted-foreground">Click on any node in the graph to view its connections and details.</p>
-            )}
+          <div className="flex-1 w-full h-full">
+            <ForceGraph2D
+              ref={fgRef}
+              width={windowSize.width}
+              height={windowSize.height}
+              graphData={data}
+              nodeLabel="label"
+              nodeColor={node => {
+                if (node.group === 1) return '#ef4444'; // Red Kingpin
+                if (node.group === 3) return '#eab308'; // Yellow FIR
+                if (node.group === 4) return '#3b82f6'; // Blue Fence
+                return '#2dd4bf'; // Teal Associate
+              }}
+              linkColor={() => 'rgba(255,255,255,0.1)'}
+              linkWidth={link => link.value ? link.value * 0.5 : 1}
+              nodeRelSize={4}
+              backgroundColor="#050505"
+              onNodeClick={node => setSelectedNode(node)}
+              linkDirectionalParticles={2}
+              linkDirectionalParticleWidth={1.5}
+              linkDirectionalParticleColor={() => 'rgba(45, 212, 191, 0.5)'}
+              linkDirectionalParticleSpeed={0.005}
+            />
           </div>
-        </Card>
+          
+          {/* Scanline Overlay */}
+          <div className="absolute inset-0 pointer-events-none" style={{
+            backgroundImage: 'linear-gradient(rgba(0, 255, 255, 0.02) 1px, transparent 1px)',
+            backgroundSize: '100% 4px'
+          }}></div>
+        </div>
 
+        {/* Side Panel */}
+        <div className="col-span-1 flex flex-col space-y-4">
+          <Card className="bg-card border border-border rounded-none shadow-none flex-1">
+            <CardHeader className="border-b border-border pb-3 bg-background">
+              <CardTitle className="text-xs font-mono tracking-widest flex items-center gap-2 text-muted-foreground">
+                <Network size={14} className="text-secondary"/> NODE_INSPECTOR
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-4 pt-6 space-y-6">
+              {selectedNode ? (
+                <div className="space-y-4 font-mono animate-in fade-in zoom-in-95 duration-200">
+                  <div className="space-y-1 border-b border-border pb-4">
+                    <div className="text-[10px] text-muted-foreground tracking-widest">TARGET_ID</div>
+                    <div className={`text-lg font-bold ${
+                      selectedNode.group === 1 ? 'text-destructive' :
+                      selectedNode.group === 3 ? 'text-amber-500' :
+                      'text-secondary'
+                    }`}>
+                      {selectedNode.id}
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <div className="text-[10px] text-muted-foreground tracking-widest">CLASSIFICATION</div>
+                    <div className="p-2 border border-border bg-background text-xs">
+                      {selectedNode.label}
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <div className="text-[10px] text-muted-foreground tracking-widest">THREAT_LEVEL</div>
+                    <div className="w-full bg-background border border-border h-4 relative overflow-hidden">
+                      <div 
+                        className={`absolute top-0 left-0 bottom-0 ${
+                          selectedNode.group === 1 ? 'bg-destructive/50' : 'bg-secondary/50'
+                        }`} 
+                        style={{ width: `${selectedNode.val * 5}%` }} 
+                      />
+                      <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0IiBoZWlnaHQ9IjQiPgo8cmVjdCB3aWR0aD0iNCIgaGVpZ2h0PSI0IiBmaWxsPSJub25lIiAvPgo8cGF0aCBkPSJNMCAwTDIgMloiIHN0cm9rZT0icmdiYSgyNTUsMjU1LDI1NSwwLjEpIiBzdHJva2Utd2lkdGg9IjEiIC8+Cjwvc3ZnPg==')] opacity-50" />
+                    </div>
+                  </div>
+
+                  <div className="pt-4 border-t border-border flex gap-2">
+                    <button className="flex-1 p-2 border border-border hover:border-secondary text-[10px] text-muted-foreground hover:text-secondary transition-colors uppercase bg-background flex items-center justify-center gap-2">
+                      <Filter size={12}/> Isolate
+                    </button>
+                    <button className="flex-1 p-2 border border-border hover:border-secondary text-[10px] text-muted-foreground hover:text-secondary transition-colors uppercase bg-background flex items-center justify-center gap-2">
+                      <Share2 size={12}/> Export
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="text-xs font-mono text-muted-foreground text-center border border-dashed border-border p-8 bg-background">
+                  AWAITING_NODE_SELECTION...
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
   );

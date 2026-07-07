@@ -1,0 +1,30 @@
+{
+  "defaults": {
+    "project": 1,
+    "env": 1
+  },
+  "actives": {
+    "project": 1,
+    "env": 1
+  },
+  "projects": [
+    {
+      "idx": 1,
+      "id": "54006000000013047",
+      "name": "Cyber-Matrix",
+      "domain": {
+        "id": "50043686651",
+        "name": "cyber-matrix-60076821430.development"
+      },
+      "timezone": "Asia/Kolkata",
+      "env": [
+        {
+          "idx": 1,
+          "id": "60076821430",
+          "name": "Development",
+          "type": 3
+        }
+      ]
+    }
+  ]
+}

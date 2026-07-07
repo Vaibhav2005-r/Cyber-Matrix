@@ -3,6 +3,6 @@
     "source": "client"
   },
   "app_sail": {
-    "source": "appsail"
+    "source": "backend"
   }
 }

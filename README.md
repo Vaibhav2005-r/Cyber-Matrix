@@ -33,9 +33,10 @@
 
 ### Frontend
 - **Framework:** React 19 (Vite)
-- **Styling:** Tailwind CSS v4 (Curated Dark Matrix theme)
-- **Visuals & Graphs:** Recharts, Lucide Icons, Framer Motion
-- **Interactions:** `@xyflow/react` (React Flow), Leaflet (`react-leaflet`)
+- **Active app:** `client/`
+- **Styling:** Tailwind CSS v3
+- **Visuals & Graphs:** Recharts, Lucide Icons, React Force Graph
+- **Interactions:** Leaflet (`react-leaflet`)
 
 ### Backend
 - **Framework:** FastAPI (Python 3.13)
@@ -51,12 +52,12 @@
 - Node.js 18+
 
 ### 1. Clone & Set Up Dataset
-1. Save your FIR details CSV inside the root directory under:
-   `datasets/FIR_Details_Data.csv`
-2. Create a `.env` file in the root directory:
+1. Save your FIR details CSV inside the backend directory under:
+   `backend/data/FIR_Details_Data.csv`
+2. Create a `.env` file inside `backend/`:
    ```env
-   DATASET_PATH=datasets/FIR_Details_Data.csv
-   API_NAME=Cyber-Matrix-API
+   DATASET_PATH=data/FIR_Details_Data.csv
+   API_NAME=Cyber Matrix Crime API
    API_VERSION=1.0.0
    ```
 
@@ -72,7 +73,7 @@ The server will start at `http://localhost:8000`.
 
 ### 3. Run React Frontend
 ```bash
-cd frontend
+cd client
 npm install
 npm run dev
 ```

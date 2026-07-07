@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { 
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer 
 } from 'recharts';
-import { AlertTriangle, TrendingDown, DollarSign, Building, AlertCircle } from 'lucide-react';
+import { TrendingDown, DollarSign, Building, AlertCircle } from 'lucide-react';
 
 const mockTransactions = [
   { id: 'TXN-9982', account: '11200045678', amount: '₹14,50,000', type: 'Wire Transfer', risk: 'Critical', date: '2024-10-14' },

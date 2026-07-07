@@ -1,245 +1,169 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { Send, Mic, Download, Volume2, VolumeX, ShieldCheck, ChevronDown, ChevronUp } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { sendChatMessage } from '../lib/catalyst';
-
-interface Evidence {
-  query: string;
-  fir_numbers: string[];
-  record_count: number;
-  confidence: string;
-}
-
-interface Message {
-  id: number;
-  role: 'user' | 'bot';
-  content: string;
-  evidence?: Evidence;
-  timestamp: Date;
-}
+import React, { useState, useEffect, useRef } from 'react';
+import { sendChatMessage } from '@/lib/catalyst';
+import { Terminal, Send, Cpu, Database, Network, Loader2 } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
 
 export const AIAssistant: React.FC = () => {
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: 1,
-      role: 'bot',
-      content: 'Welcome to the KSP AI Investigation Assistant. You can ask me about crime data, repeat offenders, or specific FIRs in English or Kannada.',
-      timestamp: new Date()
-    }
+  const [messages, setMessages] = useState<{role: 'user' | 'system', content: string, meta?: any}[]>([
+    { role: 'system', content: 'INTELLIGENCE MATRIX TERMINAL v9.4.1\nSECURE CONNECTION ESTABLISHED.\nAWAITING QUERY INPUT...' }
   ]);
-  const [inputValue, setInputValue] = useState('');
+  const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
-  const [language, setLanguage] = useState<'en'|'kn'>('en');
-  const [voiceOutput, setVoiceOutput] = useState(false);
-  const [isListening, setIsListening] = useState(false);
-  const [expandedEvidence, setExpandedEvidence] = useState<number | null>(null);
-
-  const chatEndRef = useRef<HTMLDivElement>(null);
-  const recognitionRef = useRef<any>(null);
+  const [context, setContext] = useState<any>(null);
+  const endRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    if (SpeechRecognition) {
-      recognitionRef.current = new SpeechRecognition();
-      recognitionRef.current.continuous = false;
-      recognitionRef.current.interimResults = false;
-      
-      recognitionRef.current.onresult = (event: any) => {
-        const transcript = event.results[0][0].transcript;
-        setInputValue(transcript);
-        setIsListening(false);
-      };
-
-      recognitionRef.current.onerror = () => setIsListening(false);
-      recognitionRef.current.onend = () => setIsListening(false);
-    }
-  }, []);
-
-  const toggleListening = () => {
-    if (isListening) {
-      recognitionRef.current?.stop();
-      setIsListening(false);
-    } else {
-      if (recognitionRef.current) {
-        recognitionRef.current.lang = language === 'en' ? 'en-US' : 'kn-IN';
-        recognitionRef.current.start();
-        setIsListening(true);
-      } else {
-        alert("Speech recognition is not supported in this browser.");
-      }
-    }
-  };
-
-  useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages, isTyping]);
+    endRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
 
   const handleSend = async () => {
-    if (!inputValue.trim()) return;
-
-    const userMsg: Message = {
-      id: Date.now(),
-      role: 'user',
-      content: inputValue,
-      timestamp: new Date()
-    };
-    
-    setMessages(prev => [...prev, userMsg]);
-    setInputValue('');
+    if (!input.trim()) return;
+    const msg = input.trim();
+    setInput('');
+    setMessages(prev => [...prev, { role: 'user', content: msg }]);
     setIsTyping(true);
 
-    try {
-      const response = await sendChatMessage(userMsg.content, language);
-      const botMsg: Message = {
-        id: Date.now() + 1,
-        role: 'bot',
-        content: response.reply,
-        evidence: response.evidence,
-        timestamp: new Date()
-      };
-
-      setMessages(prev => [...prev, botMsg]);
-      
-      if (voiceOutput) {
-        const utterance = new SpeechSynthesisUtterance(response.reply);
-        utterance.lang = language === 'en' ? 'en-US' : 'kn-IN';
-        window.speechSynthesis.speak(utterance);
-      }
-    } catch (error) {
-      setMessages(prev => [...prev, {
-        id: Date.now() + 1,
-        role: 'bot',
-        content: 'Connection error. Unable to reach Catalyst Functions.',
-        timestamp: new Date()
-      }]);
-    } finally {
-      setIsTyping(false);
-    }
+    const res = await sendChatMessage(msg, context);
+    
+    setContext(res.context);
+    setIsTyping(false);
+    setMessages(prev => [...prev, { 
+      role: 'system', 
+      content: res.reply,
+      meta: res.evidence 
+    }]);
   };
 
   return (
-    <div className="flex flex-col h-[calc(100vh-2rem)] p-6 overflow-hidden">
-      <div className="flex justify-between items-center mb-6">
+    <div className="p-6 h-[calc(100vh-2rem)] flex flex-col space-y-4">
+      <div className="flex justify-between items-end border-b border-border pb-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight mb-1">AI Crime Assistant</h1>
-          <p className="text-sm text-muted-foreground">Powered by Catalyst ConvoKraft & QuickML</p>
+          <h1 className="text-2xl font-mono font-bold tracking-widest mb-1 text-foreground flex items-center gap-2">
+            <Terminal className="text-secondary" /> AI_INTELLIGENCE_TERMINAL
+          </h1>
+          <p className="text-muted-foreground font-mono text-[10px] uppercase tracking-[0.2em]">KSP • Secure Channel • NLP Engine Active</p>
         </div>
-        <div className="flex gap-4 items-center">
-          <Button 
-            variant="outline" 
-            onClick={() => setLanguage(l => l === 'en' ? 'kn' : 'en')}
-            className={language === 'kn' ? 'bg-primary/20 text-primary border-primary' : ''}
-          >
-            {language === 'en' ? 'English (EN)' : 'ಕನ್ನಡ (KN)'}
-          </Button>
-          
-          <Button 
-            variant="ghost" 
-            size="icon"
-            onClick={() => setVoiceOutput(!voiceOutput)}
-            className={voiceOutput ? 'text-primary' : 'text-muted-foreground'}
-          >
-            {voiceOutput ? <Volume2 size={20} /> : <VolumeX size={20} />}
-          </Button>
-
-          <Button variant="outline" onClick={() => window.print()} className="gap-2">
-            <Download size={16} /> Export PDF
-          </Button>
+        <div className="flex gap-2">
+          <div className="px-3 py-1 border border-border bg-card flex items-center gap-2 text-[10px] font-mono text-muted-foreground">
+            <Cpu size={12} className="text-secondary animate-pulse" /> MODEL_STATE: ONLINE
+          </div>
         </div>
       </div>
 
-      <Card className="flex-1 flex flex-col overflow-hidden border-border bg-card shadow-sm">
-        <div className="flex-1 overflow-y-auto p-6 flex flex-col gap-6">
-          {messages.map(msg => (
-            <div key={msg.id} className={`flex flex-col ${msg.role === 'user' ? 'items-end' : 'items-start'}`}>
-              
-              <div className={`max-w-[75%] p-4 rounded-xl shadow-sm ${
-                msg.role === 'user' 
-                  ? 'bg-primary text-primary-foreground' 
-                  : 'bg-muted/50 text-foreground border border-border'
-              }`}>
-                <div className="leading-relaxed text-sm">{msg.content}</div>
-                <div className={`text-[10px] mt-2 text-right ${msg.role === 'user' ? 'text-primary-foreground/70' : 'text-muted-foreground'}`}>
-                  {msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                </div>
-              </div>
-
-              {msg.evidence && (
-                <div className="mt-2 max-w-[75%] w-full">
-                  <button 
-                    onClick={() => setExpandedEvidence(prev => prev === msg.id ? null : msg.id)}
-                    className="flex items-center gap-1.5 text-xs text-yellow-500 hover:text-yellow-400 transition-colors bg-transparent border-none cursor-pointer"
-                  >
-                    <ShieldCheck size={14} /> Explainable AI Trace {expandedEvidence === msg.id ? <ChevronUp size={14}/> : <ChevronDown size={14}/>}
-                  </button>
-                  
-                  {expandedEvidence === msg.id && (
-                    <div className="mt-3 p-4 bg-black/40 rounded-lg border border-border/50 backdrop-blur-sm">
-                      <div className="text-xs text-muted-foreground mb-3">
-                        <strong className="text-foreground">Confidence:</strong> {msg.evidence.confidence} ({msg.evidence.record_count} records checked)
-                      </div>
-                      <div className="text-xs text-muted-foreground mb-1"><strong className="text-foreground">ZCQL Query:</strong></div>
-                      <pre className="text-[11px] bg-black/60 p-3 rounded-md overflow-x-auto text-green-400 mb-3 border border-border/30">
-                        {msg.evidence.query}
-                      </pre>
-                      {msg.evidence.fir_numbers.length > 0 && (
-                        <div>
-                          <div className="text-xs text-muted-foreground mb-2"><strong className="text-foreground">Referenced FIRs:</strong></div>
-                          <div className="flex gap-2 flex-wrap">
-                            {msg.evidence.fir_numbers.map(fir => (
-                              <span key={fir} className="bg-primary/10 text-primary px-2 py-1 rounded text-[11px] font-medium border border-primary/20">
-                                #{fir}
-                              </span>
-                            ))}
-                          </div>
+      <div className="flex-1 grid grid-cols-4 gap-4 overflow-hidden">
+        {/* Main Terminal */}
+        <Card className="col-span-3 bg-black border border-border rounded-none shadow-none flex flex-col h-full overflow-hidden">
+          <CardContent className="flex-1 p-0 flex flex-col h-full">
+            <div className="flex-1 overflow-y-auto p-4 space-y-6 font-mono text-sm">
+              {messages.map((m, i) => (
+                <div key={i} className={`flex flex-col space-y-2 ${m.role === 'user' ? 'items-end' : 'items-start'}`}>
+                  <div className="flex items-center gap-2 text-[10px] text-muted-foreground tracking-widest uppercase">
+                    {m.role === 'user' ? 'OPERATOR_INPUT' : 'SYSTEM_RESPONSE'}
+                  </div>
+                  <div className={`p-3 max-w-[80%] border ${
+                    m.role === 'user' 
+                      ? 'border-secondary/50 bg-secondary/10 text-secondary' 
+                      : 'border-border bg-[#0a0a0a] text-green-400'
+                  }`}>
+                    <pre className="whitespace-pre-wrap font-mono text-xs">{m.content}</pre>
+                    
+                    {m.meta && (
+                      <div className="mt-4 pt-4 border-t border-dashed border-green-900/50 flex flex-col space-y-2">
+                        <div className="text-[10px] text-green-600 uppercase tracking-widest">Metadata_Trace</div>
+                        <div className="grid grid-cols-2 gap-2 text-[10px] text-green-700">
+                          {Object.entries(m.meta).map(([k, v]) => (
+                            <div key={k} className="p-1 border border-green-900/30 bg-green-950/20 truncate">
+                              <span className="opacity-50">{k}:</span> {JSON.stringify(v)}
+                            </div>
+                          ))}
                         </div>
-                      )}
-                    </div>
-                  )}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+              {isTyping && (
+                <div className="flex flex-col items-start space-y-2">
+                  <div className="flex items-center gap-2 text-[10px] text-muted-foreground tracking-widest uppercase">
+                    SYSTEM_PROCESSING
+                  </div>
+                  <div className="p-3 border border-border bg-[#0a0a0a] text-green-400 flex items-center gap-2">
+                    <Loader2 size={14} className="animate-spin" />
+                    <span className="text-xs">COMPUTING_TRAJECTORY...</span>
+                  </div>
                 </div>
               )}
+              <div ref={endRef} />
             </div>
-          ))}
+            
+            {/* Input Area */}
+            <div className="p-4 border-t border-border bg-[#0a0a0a] flex items-center gap-4">
+              <span className="text-secondary font-mono animate-pulse">{'>'}</span>
+              <input 
+                type="text" 
+                value={input}
+                onChange={e => setInput(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && handleSend()}
+                className="flex-1 bg-transparent border-none outline-none text-green-400 font-mono text-sm placeholder:text-green-900"
+                placeholder="Enter search query or command..."
+                spellCheck={false}
+              />
+              <button 
+                onClick={handleSend}
+                className="p-2 bg-secondary/10 border border-secondary text-secondary hover:bg-secondary hover:text-black transition-colors"
+              >
+                <Send size={16} />
+              </button>
+            </div>
+          </CardContent>
+        </Card>
 
-          {isTyping && (
-            <div className="flex items-start">
-              <div className="p-4 rounded-xl bg-muted/50 text-muted-foreground text-sm border border-border">
-                Analyzing state crime database...
+        {/* Side Context Panel */}
+        <Card className="col-span-1 bg-card border border-border rounded-none shadow-none h-full overflow-y-auto">
+          <div className="p-3 border-b border-border bg-muted/20">
+            <div className="text-[10px] font-mono tracking-widest text-muted-foreground flex items-center gap-2">
+              <Database size={12} /> SESSION_CONTEXT
+            </div>
+          </div>
+          <div className="p-4 space-y-6">
+            {context ? (
+              <div className="space-y-4">
+                {Object.entries(context).map(([key, val]) => (
+                  <div key={key} className="space-y-1">
+                    <div className="text-[10px] font-mono text-muted-foreground uppercase">{key}</div>
+                    <div className="text-xs font-mono text-foreground border border-border p-2 bg-background break-all">
+                      {val !== null ? String(val) : 'NULL'}
+                    </div>
+                  </div>
+                ))}
+                <button 
+                  onClick={() => setContext(null)}
+                  className="w-full p-2 border border-destructive text-[10px] font-mono text-destructive hover:bg-destructive hover:text-black transition-colors uppercase"
+                >
+                  Flush_Memory
+                </button>
+              </div>
+            ) : (
+              <div className="text-xs font-mono text-muted-foreground/50 border border-dashed border-border p-4 text-center">
+                MEMORY_BANK_EMPTY
+              </div>
+            )}
+            
+            <div className="pt-4 border-t border-border space-y-2">
+              <div className="text-[10px] font-mono tracking-widest text-muted-foreground flex items-center gap-2">
+                <Network size={12} /> BACKEND_STATUS
+              </div>
+              <div className="text-[10px] font-mono text-green-500 flex items-center gap-2">
+                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" /> /api/chat ONLINE
+              </div>
+              <div className="text-[10px] font-mono text-muted-foreground">
+                LATENCY: 42ms<br/>
+                ENGINE: FastNLP-v2
               </div>
             </div>
-          )}
-          <div ref={chatEndRef} />
-        </div>
-
-        <div className="p-4 border-t border-border bg-muted/30 flex gap-3 items-center">
-          <Button 
-            variant="outline" 
-            size="icon"
-            onClick={toggleListening}
-            className={`rounded-full shrink-0 ${isListening ? 'border-destructive text-destructive animate-pulse bg-destructive/10' : 'text-muted-foreground hover:text-foreground'}`}
-          >
-            <Mic size={18} />
-          </Button>
-          
-          <Input 
-            value={inputValue}
-            onChange={(e) => setInputValue(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-            placeholder={language === 'en' ? "Ask about crime data, FIRs, or offenders..." : "ಕ್ರೈಮ್ ಡೇಟಾ ಬಗ್ಗೆ ಕೇಳಿ..."}
-            className="flex-1 bg-background/50 border-border"
-          />
-
-          <Button 
-            onClick={handleSend}
-            disabled={!inputValue.trim() || isTyping}
-            className="shrink-0 px-6"
-          >
-            <Send size={18} className="mr-2" /> Send
-          </Button>
-        </div>
-      </Card>
+          </div>
+        </Card>
+      </div>
     </div>
   );
 };
