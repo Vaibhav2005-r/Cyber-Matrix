@@ -7,7 +7,8 @@ class ToolCall(BaseModel):
 
 class AgentPlan(BaseModel):
     intent: str
-    tool_calls: list[ToolCall]
+    skill: str
+    parameters: dict
 
 class ToolResult(BaseModel):
     tool: str
@@ -23,3 +24,5 @@ class AgentResponse(BaseModel):
     context: dict = {}
     suggestions: list[str] = []
     reasoning: dict = {}
+    timeline: dict = {}
+    similar_cases: list = []

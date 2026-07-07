@@ -5,50 +5,35 @@ import pandas as pd
 class ResponseGenerator:
     @staticmethod
     def generate(results: list[ToolResult], context: dict, query: str) -> AgentResponse:
-        # Defaults
         summary = "No matching records found."
         count = 0
         records = []
         suggestions = ["Show overall statistics", "Show cases in Bengaluru City"]
+        timeline = {}
+        similar_cases = []
         tools_used = [r.tool for r in results]
         
-        # Check if we have search tool results
-        search_result = next((r for r in results if r.tool == "search"), None)
-        analytics_result = next((r for r in results if r.tool == "analytics"), None)
+        investigation_result = next((r for r in results if r.tool == "investigation"), None)
 
-        if search_result and search_result.success:
-            data = search_result.data
-            records = data.get("records", [])
-            count = data.get("count", 0)
+        if investigation_result and investigation_result.success:
+            skill_data = investigation_result.data
             
-            # Recreate df for ResponseFormatter
+            # Extract nested tool data from the skill execution
+            search_data = skill_data.get("search", {})
+            records = search_data.get("records", [])
+            count = search_data.get("count", 0)
+            
+            timeline = skill_data.get("timeline", {})
+            similar_cases = skill_data.get("similar_cases", {}).get("similar_cases", [])
+            
+            # Format using existing ResponseFormatter logic
             df_temp = pd.DataFrame(records)
-            # If empty, make sure columns exist
             if df_temp.empty:
                 df_temp = pd.DataFrame(columns=["Arrested Count\tNo.", "Conviction Count", "UnitName"])
                 
             formatted = ResponseFormatter.format_with_context(df_temp, context, query)
             summary = formatted.get("summary", summary)
             suggestions = formatted.get("suggestions", suggestions)
-            
-        elif analytics_result and analytics_result.success:
-            data = analytics_result.data
-            stats = data.get("statistics", {})
-            total = stats.get("total_records", 0)
-            convictions = stats.get("convictions", 0)
-            
-            summary = f"Aggregated Criminology Statistics compiled successfully.\n\n"
-            summary += f"• **Total Recorded Cases:** {total:,}\n"
-            summary += f"• **Unique Districts:** {stats.get('districts', 0)}\n"
-            summary += f"• **Precincts:** {stats.get('stations', 0)}\n"
-            summary += f"• **Total Convictions:** {convictions:,}"
-            
-            count = total
-            suggestions = [
-                "Show cases in Bengaluru City",
-                "Show theft cases in Bagalkot",
-                "Compare with previous year"
-            ]
 
         # Build reasoning block
         reasoning = {
@@ -67,5 +52,7 @@ class ResponseGenerator:
             records=records,
             context=context,
             suggestions=suggestions,
-            reasoning=reasoning
+            reasoning=reasoning,
+            timeline=timeline,
+            similar_cases=similar_cases
         )
