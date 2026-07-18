@@ -1,8 +1,5 @@
 {
   "client": {
-    "source": "client"
-  },
-  "app_sail": {
-    "source": "backend"
+    "source": "client/dist"
   }
 }
