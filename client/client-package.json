@@ -1,0 +1,9 @@
+{
+  "name": "client",
+  "version": "1.0.0",
+  "scripts": {
+    "build": "npm run build",
+    "predeploy": "npm install"
+  },
+  "homepage": "dist"
+}

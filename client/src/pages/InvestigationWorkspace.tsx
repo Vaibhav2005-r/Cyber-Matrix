@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { fetchRecentAlerts } from '@/lib/catalyst';
+import { fetchRecentAlerts, submitAction } from '@/lib/catalyst';
 import { Terminal, ShieldAlert, FileText, Activity } from 'lucide-react';
+import { toast } from 'sonner';
 
 export const InvestigationWorkspace: React.FC = () => {
   const [cases, setCases] = useState<any[]>([]);
@@ -97,9 +98,36 @@ export const InvestigationWorkspace: React.FC = () => {
             <div className="space-y-2 font-mono">
               <div className="text-[10px] text-muted-foreground tracking-widest border-b border-border pb-1">ACTION_CONSOLE</div>
               <div className="grid grid-cols-2 gap-2">
-                <button disabled className="p-2 border border-border text-[10px] text-muted-foreground uppercase opacity-50 bg-card">Deploy_Unit</button>
-                <button disabled className="p-2 border border-border text-[10px] text-muted-foreground uppercase opacity-50 bg-card">Flag_Record</button>
-                <button disabled className="p-2 border border-border text-[10px] text-muted-foreground uppercase opacity-50 col-span-2 bg-card">Request_AI_Analysis</button>
+                <button 
+                  onClick={async () => {
+                    toast.loading('Deploying Unit...');
+                    await submitAction('DEPLOY_UNIT', { case_id: 'AWAITING_SELECTION' });
+                    toast.success('Unit Deployed', { description: 'Tactical unit dispatched to selected incident.' });
+                  }}
+                  className="p-2 border border-border text-[10px] text-muted-foreground uppercase bg-card hover:border-secondary hover:text-secondary transition-colors"
+                >
+                  Deploy_Unit
+                </button>
+                <button 
+                  onClick={async () => {
+                    toast.loading('Flagging record...');
+                    await submitAction('FLAG_RECORD', { case_id: 'AWAITING_SELECTION', flag: 'HIGH_PRIORITY' });
+                    toast.success('Record Flagged', { description: 'Case elevated to High Priority status.' });
+                  }}
+                  className="p-2 border border-border text-[10px] text-muted-foreground uppercase bg-card hover:border-orange-500 hover:text-orange-500 transition-colors"
+                >
+                  Flag_Record
+                </button>
+                <button 
+                  onClick={async () => {
+                    toast.loading('Initiating AI Analysis...');
+                    await submitAction('REQUEST_AI_ANALYSIS', { case_id: 'AWAITING_SELECTION' });
+                    toast.success('Analysis Complete', { description: 'AI insights generated and appended to case file.' });
+                  }}
+                  className="p-2 border border-border text-[10px] text-muted-foreground uppercase col-span-2 bg-card hover:border-secondary hover:text-secondary transition-colors"
+                >
+                  Request_AI_Analysis
+                </button>
               </div>
             </div>
           </CardContent>

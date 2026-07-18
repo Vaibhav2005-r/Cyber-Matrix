@@ -1,9 +1,23 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { User, ShieldAlert, Fingerprint, Crosshair, Map as MapIcon, Link as LinkIcon, AlertTriangle } from 'lucide-react';
 import { ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar } from 'recharts';
+import { fetchOffenderProfile, submitAction } from '@/lib/catalyst';
+import { toast } from 'sonner';
 
 export const OffenderProfiling: React.FC = () => {
+  const [profile, setProfile] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const loadProfile = async () => {
+      setIsLoading(true);
+      const data = await fetchOffenderProfile('A1_RAMESH');
+      setProfile(data);
+      setIsLoading(false);
+    };
+    loadProfile();
+  }, []);
   const radarData = [
     { subject: 'Violence', A: 85, fullMark: 100 },
     { subject: 'Evasion', A: 65, fullMark: 100 },
@@ -36,43 +50,56 @@ export const OffenderProfiling: React.FC = () => {
             </CardTitle>
           </CardHeader>
           <CardContent className="p-0">
-            <div className="p-6 flex flex-col items-center justify-center border-b border-border bg-[#050505]">
-              <div className="w-32 h-32 border border-secondary p-1 mb-4 relative">
-                <div className="absolute top-0 left-0 w-2 h-2 border-t-2 border-l-2 border-secondary"></div>
-                <div className="absolute top-0 right-0 w-2 h-2 border-t-2 border-r-2 border-secondary"></div>
-                <div className="absolute bottom-0 left-0 w-2 h-2 border-b-2 border-l-2 border-secondary"></div>
-                <div className="absolute bottom-0 right-0 w-2 h-2 border-b-2 border-r-2 border-secondary"></div>
-                <img src="https://i.pravatar.cc/150?u=a042581f4e29026704d" alt="Mugshot" className="w-full h-full object-cover grayscale brightness-75 contrast-125" />
-                <div className="absolute inset-0 bg-secondary/10 mix-blend-overlay"></div>
-              </div>
-              <h2 className="text-lg font-mono font-bold text-destructive">RAMESH KUMAR</h2>
-              <p className="text-[10px] font-mono text-muted-foreground tracking-widest">ALIAS: "RKT"</p>
-            </div>
-            
-            <div className="p-4 space-y-4 font-mono text-xs">
-              <div className="flex justify-between border-b border-border/50 pb-1">
-                <span className="text-muted-foreground">KSP_ID</span>
-                <span className="text-foreground">KSP-998-24X</span>
-              </div>
-              <div className="flex justify-between border-b border-border/50 pb-1">
-                <span className="text-muted-foreground">STATUS</span>
-                <span className="text-amber-500">AT_LARGE</span>
-              </div>
-              <div className="flex justify-between border-b border-border/50 pb-1">
-                <span className="text-muted-foreground">RISK_LEVEL</span>
-                <span className="text-destructive">EXTREME (8.9)</span>
-              </div>
-              <div className="flex justify-between border-b border-border/50 pb-1">
-                <span className="text-muted-foreground">LAST_SEEN</span>
-                <span className="text-foreground">MYSURU_SOUTH</span>
-              </div>
-              
-              <div className="pt-2">
-                <button className="w-full p-2 border border-secondary text-[10px] text-secondary hover:bg-secondary hover:text-black transition-colors uppercase flex items-center justify-center gap-2">
-                  <Fingerprint size={12}/> Run_Biometric_Match
-                </button>
-              </div>
-            </div>
+            {isLoading ? (
+              <div className="p-10 text-center font-mono text-muted-foreground animate-pulse text-xs">LOADING_DOSSIER...</div>
+            ) : (
+              <>
+                <div className="p-6 flex flex-col items-center justify-center border-b border-border bg-[#050505]">
+                  <div className="w-32 h-32 border border-secondary p-1 mb-4 relative">
+                    <div className="absolute top-0 left-0 w-2 h-2 border-t-2 border-l-2 border-secondary"></div>
+                    <div className="absolute top-0 right-0 w-2 h-2 border-t-2 border-r-2 border-secondary"></div>
+                    <div className="absolute bottom-0 left-0 w-2 h-2 border-b-2 border-l-2 border-secondary"></div>
+                    <div className="absolute bottom-0 right-0 w-2 h-2 border-b-2 border-r-2 border-secondary"></div>
+                    <img src="https://i.pravatar.cc/150?u=a042581f4e29026704d" alt="Mugshot" className="w-full h-full object-cover grayscale brightness-75 contrast-125" />
+                    <div className="absolute inset-0 bg-secondary/10 mix-blend-overlay"></div>
+                  </div>
+                  <h2 className="text-lg font-mono font-bold text-destructive uppercase">{profile?.name || 'RAMESH KUMAR'}</h2>
+                  <p className="text-[10px] font-mono text-muted-foreground tracking-widest">ALIAS: "{profile?.alias || 'RKT'}"</p>
+                </div>
+                
+                <div className="p-4 space-y-4 font-mono text-xs">
+                  <div className="flex justify-between border-b border-border/50 pb-1">
+                    <span className="text-muted-foreground">AGE</span>
+                    <span className="text-foreground">{profile?.age || 34}</span>
+                  </div>
+                  <div className="flex justify-between border-b border-border/50 pb-1">
+                    <span className="text-muted-foreground">STATUS</span>
+                    <span className="text-amber-500">{profile?.status || 'AT_LARGE'}</span>
+                  </div>
+                  <div className="flex justify-between border-b border-border/50 pb-1">
+                    <span className="text-muted-foreground">RISK_SCORE</span>
+                    <span className="text-destructive">{profile?.riskScore || 88}/100</span>
+                  </div>
+                  <div className="flex justify-between border-b border-border/50 pb-1">
+                    <span className="text-muted-foreground">LAST_SEEN</span>
+                    <span className="text-foreground">{profile?.lastKnownLocation || 'MYSURU_SOUTH'}</span>
+                  </div>
+                  
+                  <div className="pt-2">
+                    <button 
+                      onClick={async () => {
+                        toast.loading('Running biometric match...');
+                        await submitAction('BIOMETRIC_MATCH', { target: profile?.name || 'RAMESH' });
+                        toast.success('Match Found', { description: 'Subject identified in recent CCTV footage.' });
+                      }}
+                      className="w-full p-2 border border-secondary text-[10px] text-secondary hover:bg-secondary hover:text-black transition-colors uppercase flex items-center justify-center gap-2"
+                    >
+                      <Fingerprint size={12}/> Run_Biometric_Match
+                    </button>
+                  </div>
+                </div>
+              </>
+            )}
           </CardContent>
         </Card>
 
@@ -144,21 +171,23 @@ export const OffenderProfiling: React.FC = () => {
               </CardTitle>
             </CardHeader>
             <CardContent className="p-4 space-y-3 bg-[#050505]">
-              {[
-                { name: 'Suresh Gowda', role: 'Enforcer', risk: 'HIGH' },
-                { name: 'Manju', role: 'Driver', risk: 'MEDIUM' },
-                { name: 'Vinay Kumar', role: 'Fence', risk: 'MEDIUM' },
-              ].map((ass, i) => (
-                <div key={i} className="flex justify-between items-center p-2 border border-border bg-background hover:border-secondary transition-colors cursor-pointer">
-                  <div>
-                    <div className="text-xs font-mono font-bold text-foreground">{ass.name}</div>
-                    <div className="text-[10px] font-mono text-muted-foreground">{ass.role}</div>
-                  </div>
-                  <div className={`text-[10px] font-mono px-2 py-0.5 border ${ass.risk === 'HIGH' ? 'border-destructive text-destructive bg-destructive/10' : 'border-amber-500 text-amber-500 bg-amber-500/10'}`}>
-                    {ass.risk}
-                  </div>
-                </div>
-              ))}
+              {isLoading ? (
+                 <div className="text-xs font-mono text-muted-foreground animate-pulse text-center">LOADING...</div>
+              ) : (
+                profile?.associates?.map((ass: string, i: number) => {
+                  const isHigh = ass.includes('At Large');
+                  return (
+                    <div key={i} className="flex justify-between items-center p-2 border border-border bg-background hover:border-secondary transition-colors cursor-pointer">
+                      <div>
+                        <div className="text-xs font-mono font-bold text-foreground">{ass}</div>
+                      </div>
+                      <div className={`text-[10px] font-mono px-2 py-0.5 border ${isHigh ? 'border-destructive text-destructive bg-destructive/10' : 'border-amber-500 text-amber-500 bg-amber-500/10'}`}>
+                        {isHigh ? 'HIGH' : 'MEDIUM'}
+                      </div>
+                    </div>
+                  );
+                })
+              )}
             </CardContent>
           </Card>
 

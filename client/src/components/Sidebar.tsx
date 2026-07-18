@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { NavLink } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Shield, 
   LayoutDashboard, 
@@ -13,11 +14,20 @@ import {
   FileText, 
   ShieldAlert, 
   Users,
-  Briefcase
+  Briefcase,
+  ChevronLeft,
+  ChevronRight,
+  LogOut
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-export const Sidebar: React.FC = () => {
+interface SidebarProps {
+  onLogout?: () => void;
+}
+
+export const Sidebar: React.FC<SidebarProps> = ({ onLogout }) => {
+  const [collapsed, setCollapsed] = useState(false);
+  
   const navItems = [
     { path: '/command-center', icon: LayoutDashboard, label: 'COMMAND_CENTER' },
     { path: '/ai-assistant', icon: MessageSquare, label: 'AI_ASSISTANT' },
@@ -34,17 +44,50 @@ export const Sidebar: React.FC = () => {
   ];
 
   return (
-    <aside className="w-64 border-r border-border bg-card flex flex-col h-full overflow-y-auto z-10">
-      <div className="sticky top-0 z-10 flex items-center gap-3 p-6 pb-4 border-b border-border mb-4 bg-card">
-        <Shield className="text-secondary" size={24} strokeWidth={1.5} />
-        <span className="font-mono font-bold text-lg tracking-widest text-foreground">KSP:OPCENTER</span>
+    <motion.aside 
+      initial={{ width: 256 }}
+      animate={{ width: collapsed ? 80 : 256 }}
+      transition={{ type: "spring", stiffness: 300, damping: 30 }}
+      className="glass-panel flex flex-col h-full overflow-y-auto z-20 relative border-r border-border"
+    >
+      <div className="sticky top-0 z-10 flex items-center justify-between p-6 pb-4 border-b border-border/50 mb-4 bg-background/50 backdrop-blur-md">
+        <div className="flex items-center gap-3">
+          <svg width="0" height="0">
+            <linearGradient id="ka-gradient-sidebar" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop stopColor="#eab308" offset="50%" />
+              <stop stopColor="#ef4444" offset="50%" />
+            </linearGradient>
+          </svg>
+          <Shield className="shrink-0 animate-pulse-glow drop-shadow-[0_0_5px_rgba(239,68,68,0.5)]" size={24} strokeWidth={1.5} stroke="url(#ka-gradient-sidebar)" />
+          <AnimatePresence>
+            {!collapsed && (
+              <motion.div 
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -10 }}
+                className="flex flex-col overflow-visible"
+              >
+                <span className="font-mono font-bold text-lg tracking-wider text-foreground whitespace-nowrap leading-tight">
+                  KSP:OPCENTER
+                </span>
+                <span className="text-[10px] text-red-500 font-bold whitespace-nowrap">ಕರ್ನಾಟಕ ರಾಜ್ಯ ಪೊಲೀಸ್</span>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+        <button 
+          onClick={() => setCollapsed(!collapsed)}
+          className="text-muted-foreground hover:text-secondary transition-colors"
+        >
+          {collapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
+        </button>
       </div>
       
-      <div className="px-4 pb-2">
-        <p className="text-[10px] font-mono text-muted-foreground uppercase tracking-widest mb-2 border-b border-border pb-1">Navigation_Grid</p>
+      <div className="px-4 pb-2 text-center">
+        {!collapsed && <p className="text-[10px] font-mono text-muted-foreground uppercase tracking-widest mb-2 border-b border-border/50 pb-1">Navigation_Grid</p>}
       </div>
 
-      <nav className="flex-1 px-4 space-y-1 pb-6">
+      <nav className="flex-1 px-3 space-y-1 pb-6">
         {navItems.map((item) => {
           const IconComponent = item.icon;
           return (
@@ -52,16 +95,35 @@ export const Sidebar: React.FC = () => {
               key={item.path}
               to={item.path} 
               className={({ isActive }) => cn(
-                "group flex items-center gap-3 px-3 py-2 transition-none text-xs font-mono relative",
+                "group flex items-center gap-3 px-3 py-2.5 rounded-md transition-all duration-300 text-xs font-mono relative overflow-hidden",
                 isActive 
-                  ? "bg-muted text-secondary border-l-4 border-secondary font-bold" 
-                  : "text-muted-foreground hover:bg-muted/50 hover:text-foreground border-l-4 border-transparent"
+                  ? "bg-secondary/10 text-secondary font-bold shadow-[inset_2px_0_0_0_hsl(var(--secondary))]" 
+                  : "text-muted-foreground hover:bg-muted/30 hover:text-foreground"
               )}
             >
               {({ isActive }) => (
                 <>
-                  <IconComponent size={14} className={isActive ? "text-secondary" : "group-hover:text-foreground"} strokeWidth={isActive ? 2 : 1.5} />
-                  <span className="tracking-wider">{item.label}</span>
+                  {isActive && (
+                    <motion.div 
+                      layoutId="activeTab" 
+                      className="absolute inset-0 bg-secondary/5 border-l-2 border-secondary" 
+                      initial={false}
+                      transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                    />
+                  )}
+                  <IconComponent size={16} className={cn("shrink-0 relative z-10", isActive ? "text-secondary" : "group-hover:text-foreground")} strokeWidth={isActive ? 2 : 1.5} />
+                  <AnimatePresence>
+                    {!collapsed && (
+                      <motion.span 
+                        initial={{ opacity: 0, width: 0 }}
+                        animate={{ opacity: 1, width: "auto" }}
+                        exit={{ opacity: 0, width: 0 }}
+                        className="tracking-wider relative z-10 whitespace-nowrap"
+                      >
+                        {item.label}
+                      </motion.span>
+                    )}
+                  </AnimatePresence>
                 </>
               )}
             </NavLink>
@@ -69,12 +131,24 @@ export const Sidebar: React.FC = () => {
         })}
       </nav>
       
-      <div className="p-4 border-t border-border mt-auto">
-        <div className="text-[10px] font-mono text-muted-foreground flex justify-between">
-          <span>SYS_STATUS:</span>
-          <span className="text-green-500">ONLINE</span>
+      <div className="p-4 border-t border-border/50 mt-auto bg-background/30 space-y-4">
+        {onLogout && (
+          <button 
+            onClick={onLogout}
+            className={cn("w-full flex items-center text-muted-foreground hover:text-destructive transition-colors text-[10px] font-mono", collapsed ? "justify-center" : "gap-2")}
+            title="Log Out"
+          >
+            <LogOut size={16} className={collapsed ? "" : "shrink-0"} />
+            {!collapsed && <span>TERMINATE_SESSION</span>}
+          </button>
+        )}
+        <div className={cn("text-[10px] font-mono flex items-center", collapsed ? "justify-center" : "justify-between")}>
+          {!collapsed && <span className="text-muted-foreground">SYS_STATUS:</span>}
+          <span className="text-green-500 font-bold tracking-widest animate-pulse flex items-center gap-2">
+            {collapsed ? <div className="w-2 h-2 rounded-full bg-green-500" /> : "ONLINE"}
+          </span>
         </div>
       </div>
-    </aside>
+    </motion.aside>
   );
 };

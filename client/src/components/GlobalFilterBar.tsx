@@ -17,15 +17,21 @@ export const GlobalFilterBar: React.FC<GlobalFilterBarProps> = ({ filters, setFi
       <div className="flex items-center gap-2">
         <span className="text-muted-foreground">DISTRICT:</span>
         <select 
-          className="bg-background border border-border text-foreground p-1 outline-none focus:border-secondary transition-colors"
+          className="bg-background border border-border text-foreground p-1 outline-none focus:border-secondary transition-colors max-w-[200px]"
           value={filters.district || ''}
           onChange={(e) => setFilters({...filters, district: e.target.value || undefined})}
         >
           <option value="">-- ALL DISTRICTS --</option>
-          <option value="Bengaluru">BENGALURU (ALL)</option>
-          <option value="Mysuru">MYSURU</option>
-          <option value="Belagavi">BELAGAVI</option>
-          <option value="Dakshina Kannada">DAKSHINA KANNADA</option>
+          {[
+            'Bagalkote', 'Ballari (Bellary)', 'Belagavi (Belgaum)', 'Bengaluru Rural', 'Bengaluru Urban',
+            'Bidar', 'Chamarajanagar', 'Chikkaballapur', 'Chikkamagaluru (Chikmagalur)', 'Chitradurga',
+            'Dakshina Kannada', 'Davanagere', 'Dharwad', 'Gadag', 'Hassan', 'Haveri', 'Kalaburagi (Gulbarga)',
+            'Kodagu', 'Kolar', 'Koppal', 'Mandya', 'Mysuru (Mysore)', 'Raichur', 'Ramanagara',
+            'Shivamogga (Shimoga)', 'Tumakuru (Tumkur)', 'Udupi', 'Uttara Kannada (Karwar)',
+            'Vijayapura (Bijapur)', 'Yadgir', 'Vijayanagara'
+          ].map(district => (
+            <option key={district} value={district}>{district.toUpperCase()}</option>
+          ))}
         </select>
       </div>
 

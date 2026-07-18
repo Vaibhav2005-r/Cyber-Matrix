@@ -164,3 +164,126 @@ export const sendChatMessage = async (message: string, context?: any) => {
     };
   }
 };
+
+// --- NEW DATA & ACTION MOCKS FOR PREVIOUSLY HARDCODED PAGES ---
+
+export const fetchFinancialTransactions = async (filters: any = {}) => {
+  try {
+    const queryParams = new URLSearchParams(filters).toString();
+    const response = await fetch(`/api/financial/transactions?${queryParams}`);
+    if (!response.ok) throw new Error('Network response was not ok');
+    return await response.json();
+  } catch (error) {
+    console.error("Failed to fetch from backend", error);
+    return [
+      { id: 'TXN-9982', account: '11200045678', amount: '₹14,50,000', type: 'Wire Transfer', risk: 'Critical', date: '2024-10-14' },
+      { id: 'TXN-9983', account: '44500012345', amount: '₹8,20,000', type: 'Crypto Purchase', risk: 'High', date: '2024-10-14' },
+      { id: 'TXN-9984', account: '11200045678', amount: '₹5,00,000', type: 'Cash Withdrawal', risk: 'High', date: '2024-10-13' },
+      { id: 'TXN-9985', account: '99800055443', amount: '₹12,00,000', type: 'Offshore Transfer', risk: 'Critical', date: '2024-10-10' }
+    ];
+  }
+};
+
+export const fetchFraudTrends = async (filters: any = {}) => {
+  try {
+    const queryParams = new URLSearchParams(filters).toString();
+    const response = await fetch(`/api/financial/trends?${queryParams}`);
+    if (!response.ok) throw new Error('Network response was not ok');
+    return await response.json();
+  } catch (error) {
+    console.error("Failed to fetch from backend", error);
+    return [
+      { month: 'Jan', value: 400 },
+      { month: 'Feb', value: 300 },
+      { month: 'Mar', value: 550 },
+      { month: 'Apr', value: 450 },
+      { month: 'May', value: 700 },
+      { month: 'Jun', value: 900 },
+      { month: 'Jul', value: 850 }
+    ];
+  }
+};
+
+export const fetchRecentReports = async (filters: any = {}) => {
+  try {
+    const queryParams = new URLSearchParams(filters).toString();
+    const response = await fetch(`/api/reports/recent?${queryParams}`);
+    if (!response.ok) throw new Error('Network response was not ok');
+    return await response.json();
+  } catch (error) {
+    console.error("Failed to fetch from backend", error);
+    return [
+      { id: 'REP-104', name: 'Monthly Crime Statistics - Oct 2024', type: 'PDF', size: '2.4 MB', date: '2024-11-01' },
+      { id: 'REP-103', name: 'Hotspot Analysis - Bengaluru East', type: 'CSV', size: '840 KB', date: '2024-10-28' },
+      { id: 'REP-102', name: 'Financial Fraud Summary Q3', type: 'PDF', size: '1.8 MB', date: '2024-10-15' },
+      { id: 'REP-101', name: 'Repeat Offenders List (Active)', type: 'Excel', size: '1.1 MB', date: '2024-10-10' }
+    ];
+  }
+};
+
+export const fetchCriminalNetwork = async (filters: any = {}) => {
+  try {
+    const queryParams = new URLSearchParams(filters).toString();
+    const response = await fetch(`/api/network/suspects?${queryParams}`);
+    if (!response.ok) throw new Error('Network response was not ok');
+    return await response.json();
+  } catch (error) {
+    console.error("Failed to fetch from backend", error);
+    return {
+      nodes: [
+        { id: 'K. Ramesh', group: 1, type: 'leader' },
+        { id: 'S. Kumar', group: 2, type: 'associate' },
+        { id: 'M. Ali', group: 2, type: 'associate' },
+        { id: 'V. Prakash', group: 1, type: 'associate' },
+        { id: 'Bank Acct #1092', group: 3, type: 'financial' },
+        { id: 'Phone #9880...', group: 4, type: 'communication' },
+      ],
+      links: [
+        { source: 'K. Ramesh', target: 'S. Kumar', value: 5 },
+        { source: 'K. Ramesh', target: 'V. Prakash', value: 8 },
+        { source: 'S. Kumar', target: 'M. Ali', value: 3 },
+        { source: 'K. Ramesh', target: 'Bank Acct #1092', value: 10 },
+        { source: 'M. Ali', target: 'Phone #9880...', value: 6 },
+      ]
+    };
+  }
+};
+
+export const fetchOffenderProfile = async (id: string) => {
+  try {
+    const response = await fetch(`/api/offenders/profile?id=${id}`);
+    if (!response.ok) throw new Error('Network response was not ok');
+    return await response.json();
+  } catch (error) {
+    console.error("Failed to fetch from backend", error);
+    return {
+      name: "Ramesh Gowda",
+      alias: "Raja",
+      age: 34,
+      status: "Active Warrant",
+      riskScore: 88,
+      lastKnownLocation: "K.R. Puram, Bengaluru",
+      primaryOffenses: ["Vehicle Theft", "Extortion"],
+      associates: ["Suresh (Arrested)", "Kiran (At Large)"],
+      recentActivity: "Spotted via CCTV near Indiranagar on Oct 14th."
+    };
+  }
+};
+
+export const submitAction = async (actionType: string, payload: any = {}) => {
+  try {
+    const response = await fetch('/api/action', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ type: actionType, payload, timestamp: new Date().toISOString() }),
+    });
+    
+    if (!response.ok) throw new Error('Network response was not ok');
+    return await response.json();
+  } catch (error) {
+    console.error(`Failed to execute action ${actionType} on backend. Using fallback mock.`, error);
+    // Simulate network delay
+    await new Promise(resolve => setTimeout(resolve, 800));
+    return { success: true, message: `Action ${actionType} simulated successfully.` };
+  }
+};

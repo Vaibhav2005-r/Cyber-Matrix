@@ -24,23 +24,23 @@
     --secondary-foreground: 0 0% 0%;
 
     /* Stark dark borders */
-    --muted: 0 0% 10%;
-    --muted-foreground: 0 0% 60%;
+    --muted: 217 30% 15%;
+    --muted-foreground: 217 10% 60%;
 
-    --accent: 38 92% 50%;
-    --accent-foreground: 0 0% 0%;
+    --accent: 217 91% 60%;
+    --accent-foreground: 0 0% 100%;
 
     /* Stark Red for alerts */
-    --destructive: 0 84% 45%;
+    --destructive: 0 84% 50%;
     --destructive-foreground: 0 0% 100%;
 
     /* Grid lines and borders */
-    --border: 0 0% 15%;
-    --input: 0 0% 15%;
+    --border: 217 20% 15%;
+    --input: 217 20% 15%;
     --ring: 217 91% 60%;
 
-    /* Absolute flat corners */
-    --radius: 0px; 
+    /* Smooth corners */
+    --radius: 0.375rem; 
   }
 }
 
@@ -51,12 +51,21 @@
   body {
     @apply bg-background text-foreground;
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
-    /* Grid overlay to mimic a terminal */
+    /* Grid overlay to mimic a terminal, but more subtle */
     background-image: 
-      linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+      linear-gradient(rgba(255, 255, 255, 0.015) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.015) 1px, transparent 1px);
     background-size: 32px 32px;
     background-attachment: fixed;
+  }
+}
+
+@layer utilities {
+  .glass-panel {
+    @apply bg-card/60 backdrop-blur-md border border-white/10 shadow-lg shadow-black/50;
+  }
+  .glass-card {
+    @apply bg-background/40 backdrop-blur-sm border border-white/5 hover:border-secondary/30 transition-colors duration-300;
   }
 }
 
